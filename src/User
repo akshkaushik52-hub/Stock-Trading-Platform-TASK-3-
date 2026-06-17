@@ -1,0 +1,21 @@
+public class User {
+    private final String username;
+    private final Portfolio portfolio;
+
+    public User(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username cannot be empty.");
+        }
+
+        this.username = username.trim();
+        this.portfolio = new Portfolio();
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public Portfolio getPortfolio() {
+        return portfolio;
+    }
+}
