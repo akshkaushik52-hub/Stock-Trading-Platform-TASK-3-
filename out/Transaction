@@ -1,0 +1,80 @@
+// Source code is decompiled from a .class file using FernFlower decompiler (from Intellij IDEA).
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class Transaction {
+   private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+   private final int id;
+   private final TransactionType type;
+   private final String stockSymbol;
+   private final int quantity;
+   private final double pricePerShare;
+   private final LocalDateTime dateTime;
+
+   public Transaction(int var1, TransactionType var2, String var3, int var4, double var5, LocalDateTime var7) {
+      if (var4 <= 0) {
+         throw new IllegalArgumentException("Quantity must be greater than zero.");
+      } else if (var5 <= (double)0.0F) {
+         throw new IllegalArgumentException("Price must be greater than zero.");
+      } else {
+         this.id = var1;
+         this.type = var2;
+         this.stockSymbol = var3.toUpperCase();
+         this.quantity = var4;
+         this.pricePerShare = var5;
+         this.dateTime = var7;
+      }
+   }
+
+   public int getId() {
+      return this.id;
+   }
+
+   public TransactionType getType() {
+      return this.type;
+   }
+
+   public String getStockSymbol() {
+      return this.stockSymbol;
+   }
+
+   public int getQuantity() {
+      return this.quantity;
+   }
+
+   public double getPricePerShare() {
+      return this.pricePerShare;
+   }
+
+   public double getTotalAmount() {
+      return (double)this.quantity * this.pricePerShare;
+   }
+
+   public LocalDateTime getDateTime() {
+      return this.dateTime;
+   }
+
+   public String toCsv() {
+      int var10000 = this.id;
+      return var10000 + "," + String.valueOf(this.type) + "," + this.stockSymbol + "," + this.quantity + "," + this.pricePerShare + "," + this.dateTime.format(FORMATTER);
+   }
+
+   public static Transaction fromCsv(String var0) {
+      String[] var1 = var0.split(",");
+      if (var1.length != 6) {
+         throw new IllegalArgumentException("Invalid transaction record: " + var0);
+      } else {
+         int var2 = Integer.parseInt(var1[0]);
+         TransactionType var3 = TransactionType.valueOf(var1[1]);
+         String var4 = var1[2];
+         int var5 = Integer.parseInt(var1[3]);
+         double var6 = Double.parseDouble(var1[4]);
+         LocalDateTime var8 = LocalDateTime.parse(var1[5], FORMATTER);
+         return new Transaction(var2, var3, var4, var5, var6, var8);
+      }
+   }
+
+   public String toString() {
+      return String.format("%-4d %-5s %-8s Qty: %-5d Price: Rs. %10.2f Total: Rs. %10.2f Date: %s", this.id, this.type, this.stockSymbol, this.quantity, this.pricePerShare, this.getTotalAmount(), this.dateTime.format(FORMATTER));
+   }
+}
