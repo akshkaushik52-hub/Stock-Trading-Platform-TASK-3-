@@ -1,0 +1,22 @@
+// Source code is decompiled from a .class file using FernFlower decompiler (from Intellij IDEA).
+public class User {
+   private final String username;
+   private final Portfolio portfolio;
+
+   public User(String var1) {
+      if (var1 != null && !var1.trim().isEmpty()) {
+         this.username = var1.trim();
+         this.portfolio = new Portfolio();
+      } else {
+         throw new IllegalArgumentException("Username cannot be empty.");
+      }
+   }
+
+   public String getUsername() {
+      return this.username;
+   }
+
+   public Portfolio getPortfolio() {
+      return this.portfolio;
+   }
+}
