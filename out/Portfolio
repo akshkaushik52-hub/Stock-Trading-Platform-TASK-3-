@@ -1,0 +1,200 @@
+// Source code is decompiled from a .class file using FernFlower decompiler (from Intellij IDEA).
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
+public class Portfolio {
+   private static final double DEFAULT_STARTING_BALANCE = (double)100000.0F;
+   private double availableBalance = (double)100000.0F;
+   private final HashMap<String, Integer> holdings = new HashMap();
+   private final HashMap<String, Double> investedAmountByStock = new HashMap();
+
+   public Portfolio() {
+   }
+
+   public double getAvailableBalance() {
+      return this.availableBalance;
+   }
+
+   public HashMap<String, Integer> getHoldings() {
+      return new HashMap(this.holdings);
+   }
+
+   public int getQuantity(String var1) {
+      return (Integer)this.holdings.getOrDefault(var1.toUpperCase(), 0);
+   }
+
+   public double getInvestedAmount(String var1) {
+      return (Double)this.investedAmountByStock.getOrDefault(var1.toUpperCase(), (double)0.0F);
+   }
+
+   public void buyStock(Stock var1, int var2) {
+      this.validateQuantity(var2);
+      double var3 = var1.getPrice() * (double)var2;
+      if (var3 > this.availableBalance) {
+         throw new IllegalArgumentException("Insufficient balance to complete this purchase.");
+      } else {
+         String var5 = var1.getSymbol();
+         this.availableBalance -= var3;
+         this.holdings.put(var5, (Integer)this.holdings.getOrDefault(var5, 0) + var2);
+         this.investedAmountByStock.put(var5, (Double)this.investedAmountByStock.getOrDefault(var5, (double)0.0F) + var3);
+      }
+   }
+
+   public void sellStock(Stock var1, int var2) {
+      this.validateQuantity(var2);
+      String var3 = var1.getSymbol();
+      int var4 = (Integer)this.holdings.getOrDefault(var3, 0);
+      if (var2 > var4) {
+         throw new IllegalArgumentException("You do not own enough shares to sell.");
+      } else {
+         double var5 = var1.getPrice() * (double)var2;
+         double var7 = (Double)this.investedAmountByStock.getOrDefault(var3, (double)0.0F);
+         double var9 = var7 / (double)var4;
+         double var11 = var9 * (double)var2;
+         this.availableBalance += var5;
+         int var13 = var4 - var2;
+         if (var13 == 0) {
+            this.holdings.remove(var3);
+            this.investedAmountByStock.remove(var3);
+         } else {
+            this.holdings.put(var3, var13);
+            this.investedAmountByStock.put(var3, var7 - var11);
+         }
+
+      }
+   }
+
+   public double calculateCurrentValue(HashMap<String, Stock> var1) {
+      double var2 = (double)0.0F;
+
+      for(Map.Entry var5 : this.holdings.entrySet()) {
+         Stock var6 = (Stock)var1.get(var5.getKey());
+         if (var6 != null) {
+            var2 += var6.getPrice() * (double)(Integer)var5.getValue();
+         }
+      }
+
+      return var2;
+   }
+
+   public double calculateTotalInvestedAmount() {
+      double var1 = (double)0.0F;
+
+      for(double var4 : this.investedAmountByStock.values()) {
+         var1 += var4;
+      }
+
+      return var1;
+   }
+
+   public double calculateProfitLoss(HashMap<String, Stock> var1) {
+      return this.calculateCurrentValue(var1) - this.calculateTotalInvestedAmount();
+   }
+
+   public void displayHoldings(HashMap<String, Stock> var1) {
+      if (this.holdings.isEmpty()) {
+         System.out.println("No stocks currently owned.");
+      } else {
+         System.out.printf("%-8s %-24s %-10s %-14s %-14s %-14s%n", "Symbol", "Company", "Quantity", "Avg Cost", "Market Price", "P/L");
+         System.out.println("--------------------------------------------------------------------------------");
+
+         for(Map.Entry var3 : this.holdings.entrySet()) {
+            String var4 = (String)var3.getKey();
+            int var5 = (Integer)var3.getValue();
+            Stock var6 = (Stock)var1.get(var4);
+            if (var6 != null) {
+               double var7 = (Double)this.investedAmountByStock.getOrDefault(var4, (double)0.0F);
+               double var9 = var7 / (double)var5;
+               double var11 = var6.getPrice() * (double)var5;
+               double var13 = var11 - var7;
+               System.out.printf("%-8s %-24s %-10d Rs. %-10.2f Rs. %-10.2f Rs. %-10.2f%n", var4, var6.getName(), var5, var9, var6.getPrice(), var13);
+            }
+         }
+
+      }
+   }
+
+   public void saveToFile(Path var1) throws IOException {
+      Files.createDirectories(var1.getParent());
+      BufferedWriter var2 = Files.newBufferedWriter(var1);
+
+      try {
+         var2.write("BALANCE," + this.availableBalance);
+         var2.newLine();
+
+         for(Map.Entry var4 : this.holdings.entrySet()) {
+            String var5 = (String)var4.getKey();
+            int var6 = (Integer)var4.getValue();
+            double var7 = (Double)this.investedAmountByStock.getOrDefault(var5, (double)0.0F);
+            var2.write("HOLDING," + var5 + "," + var6 + "," + var7);
+            var2.newLine();
+         }
+      } catch (Throwable var10) {
+         if (var2 != null) {
+            try {
+               var2.close();
+            } catch (Throwable var9) {
+               var10.addSuppressed(var9);
+            }
+         }
+
+         throw var10;
+      }
+
+      if (var2 != null) {
+         var2.close();
+      }
+
+   }
+
+   public void loadFromFile(Path var1) throws IOException {
+      if (Files.exists(var1, new LinkOption[0])) {
+         this.holdings.clear();
+         this.investedAmountByStock.clear();
+         BufferedReader var2 = Files.newBufferedReader(var1);
+
+         String var3;
+         try {
+            while((var3 = var2.readLine()) != null) {
+               String[] var4 = var3.split(",");
+               if (var4.length == 2 && var4[0].equals("BALANCE")) {
+                  this.availableBalance = Double.parseDouble(var4[1]);
+               } else if (var4.length == 4 && var4[0].equals("HOLDING")) {
+                  String var5 = var4[1].toUpperCase();
+                  int var6 = Integer.parseInt(var4[2]);
+                  double var7 = Double.parseDouble(var4[3]);
+                  this.holdings.put(var5, var6);
+                  this.investedAmountByStock.put(var5, var7);
+               }
+            }
+         } catch (Throwable var10) {
+            if (var2 != null) {
+               try {
+                  var2.close();
+               } catch (Throwable var9) {
+                  var10.addSuppressed(var9);
+               }
+            }
+
+            throw var10;
+         }
+
+         if (var2 != null) {
+            var2.close();
+         }
+
+      }
+   }
+
+   private void validateQuantity(int var1) {
+      if (var1 <= 0) {
+         throw new IllegalArgumentException("Quantity must be greater than zero.");
+      }
+   }
+}
