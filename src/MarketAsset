@@ -1,0 +1,20 @@
+public abstract class MarketAsset {
+    private final String symbol;
+    private final String name;
+
+    public MarketAsset(String symbol, String name) {
+        this.symbol = symbol.toUpperCase();
+        this.name = name;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    // Abstract method: every market asset decides how it should be displayed.
+    public abstract String getDisplayInfo();
+}
